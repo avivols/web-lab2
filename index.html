@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="utf-8">
+    <title> lab1-web </title>
+    <link href="style.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="header">
+        <p>Авилова Арина Андреевна</p>
+        <p>группа P3230</p>
+        <p>вариант 22674</p>
+    </div>
+    <div id="mainContent">
+<canvas id="canvas" width="500" height="500">
+    <p>Ваш браузер не поддерживает canvas</p>
+</canvas>
+    <form id="pointForm">
+        <fieldset>
+            <legend>Ввод координат:</legend>
+            <label>X:</label>
+            <div id="xButtons">
+                <button type="button" data-value="-4">-4</button>
+                <button type="button" data-value="-3">-3</button>
+                <button type="button" data-value="-2">-2</button>
+                <button type="button" data-value="-1">-1</button>
+                <button type="button" data-value="0">0</button>
+                <button type="button" data-value="1">1</button>
+                <button type="button" data-value="2">2</button>
+                <button type="button" data-value="3">3</button>
+                <button type="button" data-value="4">4</button>
+            </div>
+
+            <label for="yValue">Y (-5..5):</label>
+            <input type="text" id="yValue">
+            <br>
+            <label for="rValue">R (2..5):</label>
+            <input type="text" id="rValue">
+            <br>
+            <button type="submit">Проверить</button>
+        </fieldset>
+        <p id="errorMessage"></p>
+    </form>
+    </div>
+    <table id="resultTable">
+        <thead>
+            <tr>
+                <th>X</th>
+                <th>Y</th>
+                <th>R</th>
+                <th>Результат</th>
+                <th>Дата и время</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+    </table>
+    <button id="clearHistory">Очистить историю</button>
+<script src="script.js"></script>
+</body>
+</html>

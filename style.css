@@ -1,0 +1,84 @@
+#header {
+    font-family: serif;
+    color: white;
+    font-size: 20px;
+    background-color: #020F38;
+    padding: 1%;
+    margin-bottom: 2%;
+}
+
+#header p {
+    font-size: 24px;
+    margin: 1%;
+}
+
+#xButtons button {
+    padding: 2%;
+    margin: 1%;
+    cursor: pointer;
+}
+#xButtons button.active {
+    background-color: #5F8ACE;
+    color: white;
+}
+
+#pointForm button[type='submit'] {
+    padding: 2%;
+    font-size: 16px;
+    margin-top: 2%;
+    cursor: pointer;
+}
+#pointForm {
+    width: 500px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%
+}
+thead {
+    background-color: #dbdbdb;
+}
+th, td {
+    border: 1px solid black;
+    padding: 1%;
+    text-align: left;
+}
+td.hit::after{
+    content: " :)" ;
+    color: green;
+}
+td.missed::after{
+    content: " :(";
+    color: red;
+}
+
+#resultBody tr:hover{
+    background-color: #eef3fb;
+}
+
+input[type="text"] {
+    padding: 2%;
+    margin: 1%;
+}
+
+body {
+    margin: 0;
+}
+
+#clearHistory {
+    font-size: 16px;
+    margin: 10px;
+    padding: 10px;
+}
+
+#mainContent {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+#errorMessage {
+    color: red;
+    font-size: 20px;
+}
