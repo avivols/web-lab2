@@ -1,5 +1,6 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+const errorMessage = document.getElementById('errorMessage');
 
 const scale = 40;
 
@@ -15,12 +16,12 @@ function drawArea(R){
     ctx.fillStyle = '#5F8ACE';
 
     // rectangle part
-    ctx.fillRect(0, 0, R/2, R);
+    ctx.fillRect(0, 0, -R, -R);
 
     // sector part
     ctx.beginPath();
     ctx.moveTo(0,0);
-    ctx.arc(0, 0, R, Math.PI, 3*Math.PI/2, false);
+    ctx.arc(0, 0, R, 3*Math.PI/2, 0, false);
     ctx.closePath();
     ctx.fill();
 
@@ -28,7 +29,7 @@ function drawArea(R){
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(R, 0);
-    ctx.lineTo(0, -R/2);
+    ctx.lineTo(0, R/2);
     ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
@@ -128,13 +129,18 @@ function drawArea(R){
     ctx.fillText('y', cx + 8, 12);
 }
 
-function drawPoint(x, y){
+function drawPoint(x, y, hit){
     ctx.setTransform(1, 0 , 0, 1, 0, 0);
     ctx.translate(canvas.width/2, canvas.height/2);
     ctx.scale(scale, -scale);
     ctx.translate(0.5/scale, 0.5/scale);
 
-    ctx.fillStyle = 'black';
+    if (hit) {
+        ctx.fillStyle = '#00EB0B';
+    } else {
+        ctx.fillStyle = '#FF0000';
+    }
+
 
     ctx.beginPath();
     ctx.arc(x, y, 4/scale, 0, 2*Math.PI);
@@ -142,18 +148,6 @@ function drawPoint(x, y){
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
-
-let selectedX = null;
-const xButtons = document.querySelectorAll('#xButtons button');
-
-xButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        selectedX = button.dataset.value;
-
-        xButtons.forEach(b => { b.classList.remove('active'); });
-        button.classList.add('active');
-    });
-});
 
 // function for validating Y and R
 function isInRange(value, min, max){
@@ -164,11 +158,11 @@ function isInRange(value, min, max){
 }
 
 // constants for Y & R range
-const yMin = -5;
+const yMin = -3;
 const yMax = 5;
 
-const rMin = 2;
-const rMax = 5;
+const rMin = 1;
+const rMax = 4;
 
 function toScaledBigInt(str, scale = 40) {
     let s = str.trim();
@@ -189,31 +183,32 @@ const form = document.getElementById('pointForm');
 form.addEventListener('submit', (event) => {
     event.preventDefault();
 
+    const checkedX = document.querySelector('input[name="x"]:checked');
     const y = document.getElementById('yValue').value;
     const r = document.getElementById('rValue').value;
 
     const yValid = isInRange(y, yMin, yMax);
     const rValid = isInRange(r, rMin, rMax);
 
-    if (!selectedX || !yValid || !rValid){
-        errorMessage.textContent = 'Проверьте введенные координаты: X, Y [-5..5], R[2..5]';
+    if (!checkedX || !yValid || !rValid){
+        errorMessage.textContent = 'Проверьте введенные координаты: X, Y [-3..5], R[1..4]';
         return;
     }
 
     errorMessage.textContent = '';
 
-    const xVal = Number(selectedX);
+    const xVal = Number(checkedX.value);
     const yVal = Number(y);
     const rVal = Number(r);
 
-    const xScaled = toScaledBigInt(selectedX);
+    const xScaled = toScaledBigInt(checkedX.value);
     const yScaled = toScaledBigInt(y);
     const rScaled = toScaledBigInt(r);
 
     const hit = isInArea(xScaled, yScaled, rScaled);
 
     drawArea(rVal);
-    drawPoint(xVal, yVal);
+    drawPoint(xVal, yVal, hit);
 
     const record = {
         x: xVal,
@@ -232,15 +227,15 @@ form.addEventListener('submit', (event) => {
 
 // functions for checking the hit
 function isInRectangle(xS, yS, RS) {
-    return xS>= 0n && (2n * xS)<= RS && yS>=0n && yS<=RS;
+    return xS<= 0n && xS >= -RS && yS<=0n && yS>=-RS;
 }
 
 function isInSector(xS, yS, RS){
-    return xS<=0n && yS<=0n && (xS**2n + yS**2n) <= RS**2n;
+    return xS>=0n && yS<=0n && (xS**2n + yS**2n) <= RS**2n;
 }
 
 function isInTriangle(xS, yS, RS){
-    return xS>=0n && yS<=0n && yS * 2n>=2n * xS - RS;
+    return xS>=0n && yS >= 0n && 2n *yS <= RS - xS;
 }
 
 function isInArea(x, y, R){

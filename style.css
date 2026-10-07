@@ -12,14 +12,13 @@
     margin: 1%;
 }
 
-#xButtons button {
-    padding: 2%;
-    margin: 1%;
+#xButtons label {
+    margin-right: 2%;
     cursor: pointer;
 }
-#xButtons button.active {
-    background-color: #5F8ACE;
-    color: white;
+
+#xButtons input:checked + label {
+    font-weight: bold;
 }
 
 #pointForm button[type='submit'] {
