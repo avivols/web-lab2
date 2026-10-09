@@ -1,10 +1,9 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const errorMessage = document.getElementById('errorMessage');
+const SERVER_URL = '/fcgi-bin/lab2.jar';
 
 const scale = 40;
-
-let results = [];
 
 function drawArea(R){
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -164,83 +163,39 @@ const yMax = 5;
 const rMin = 1;
 const rMax = 4;
 
-function toScaledBigInt(str, scale = 40) {
-    let s = str.trim();
-    let sign = 1n;
-    if (s.startsWith('-')){
-        sign = -1n;
-        s = s.slice(1);
-    }
-
-    let [initPart, fracPart = ''] = s.split('.');
-    fracPart = (fracPart + '0'.repeat(scale)).slice(0, scale);
-
-    return sign * BigInt(initPart + fracPart);
-}
-
-
 const form = document.getElementById('pointForm');
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit', async(event) => {
     event.preventDefault();
 
     const checkedX = document.querySelector('input[name="x"]:checked');
-    const y = document.getElementById('yValue').value;
-    const r = document.getElementById('rValue').value;
+    const y = document.getElementById('yValue').value.trim();
+    const r = document.getElementById('rValue').value.trim();
 
-    const yValid = isInRange(y, yMin, yMax);
-    const rValid = isInRange(r, rMin, rMax);
-
-    if (!checkedX || !yValid || !rValid){
+    if (!checkedX || !isInRange(y, yMin, yMax) || !isInRange(r, rMin, rMax)){
         errorMessage.textContent = 'Проверьте введенные координаты: X, Y [-3..5], R[1..4]';
         return;
     }
-
     errorMessage.textContent = '';
 
-    const xVal = Number(checkedX.value);
-    const yVal = Number(y);
-    const rVal = Number(r);
+    const params = new URLSearchParams({ x: checkedX.value, y: y, r: r});
 
-    const xScaled = toScaledBigInt(checkedX.value);
-    const yScaled = toScaledBigInt(y);
-    const rScaled = toScaledBigInt(r);
+    try{
+        const response = await fetch(SERVER_URL + '?' + params);
+        const data = await response.json();
 
-    const hit = isInArea(xScaled, yScaled, rScaled);
+        if (!response.ok) {
+            errorMessage.textContent = 'Ошибка: ' + data.error;
+            return;
+        }
 
-    drawArea(rVal);
-    drawPoint(xVal, yVal, hit);
-
-    const record = {
-        x: xVal,
-        y: y,
-        r: r,
-        hit: hit,
-        date: new Date().toISOString()
-    };
-    results.push(record);
-
-    localStorage.setItem('results', JSON.stringify(results));
-
-    addResultRow(record);
+        const last = data.history[data.history.length - 1];
+        drawArea(Number(r));
+        drawPoint(Number(last.x), Number(last.y), last.hit);
+        renderTable(data.history);
+    } catch (e) {
+        errorMessage.textContent = 'Сервер недоступен';
+    }
 });
-
-
-// functions for checking the hit
-function isInRectangle(xS, yS, RS) {
-    return xS<= 0n && xS >= -RS && yS<=0n && yS>=-RS;
-}
-
-function isInSector(xS, yS, RS){
-    return xS>=0n && yS<=0n && (xS**2n + yS**2n) <= RS**2n;
-}
-
-function isInTriangle(xS, yS, RS){
-    return xS>=0n && yS >= 0n && 2n *yS <= RS - xS;
-}
-
-function isInArea(x, y, R){
-    return isInRectangle(x, y, R) || isInSector(x, y, R) || isInTriangle(x, y, R);
-}
 
 drawArea(3);
 
@@ -255,7 +210,7 @@ function addResultRow(record){
         resultText = 'Промах'
     }
 
-    const dateTimeText = new Date(record.date).toLocaleString('ru-RU');
+    const dateTimeText = record.time;
 
     const cellX = document.createElement('td');
     cellX.textContent = record.x;
@@ -266,7 +221,6 @@ function addResultRow(record){
     const cellR = document.createElement('td');
     cellR.textContent = record.r;
 
-    // required for pseudoelement
     const cellRes = document.createElement('td');
     cellRes.textContent = resultText;
 
@@ -279,30 +233,44 @@ function addResultRow(record){
     const cellDateTime = document.createElement('td');
     cellDateTime.textContent = dateTimeText;
 
+    const cellExecTime = document.createElement('td');
+    cellExecTime.textContent = record.execTime;
+
     row.appendChild(cellX);
     row.appendChild(cellY);
     row.appendChild(cellR);
     row.appendChild(cellRes);
     row.appendChild(cellDateTime);
+    row.appendChild(cellExecTime);
 
     tbody.appendChild(row);
 }
 
-const saved = localStorage.getItem('results');
-
-if (saved) {
-    results = JSON.parse(saved);
-    results.forEach(record => {
-        addResultRow(record);
-    });
+function renderTable(history){
+    const tbody = document.getElementById('resultBody');
+    tbody.innerHTML = '';
+    history.forEach(record => addResultRow(record));
 }
 
 const clearButton = document.getElementById("clearHistory");
-clearButton.addEventListener('click', () => {
-    results = [];
-    localStorage.removeItem('results');
-
-    const tbody = document.getElementById('resultBody');
-    tbody.innerHTML = '';
+clearButton.addEventListener('click', async () => {
+    try {
+        const response = await fetch(SERVER_URL + '?clear=true');
+        const data = await response.json();
+        renderTable(data.history);
+    } catch (e) {
+        errorMessage.textContent = 'Сервер недоступен';
+    }
 });
 
+async function loadHistory(){
+    try{
+        const response = await fetch(SERVER_URL);
+        const data = await response.json();
+        renderTable(data.history);
+    } catch (e) {
+        errorMessage.textContent = 'Сервер недоступен';
+    }
+}
+
+loadHistory();

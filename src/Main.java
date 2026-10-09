@@ -29,6 +29,12 @@ public class Main {
             }
 
             Map<String, String> params = parseQuery(query);
+
+            if ("true".equals(params.get("clear"))){
+                HISTORY.clear();
+                sendResponse("200 OK", historyJson());
+                continue;
+            }
             String x = params.get("x");
             String y = params.get("y");
             String r = params.get("r");
@@ -58,13 +64,13 @@ public class Main {
 
     private static String validate(String x, String y, String r){
         if (!inRange(x, INTEGER, "-4", "4")){
-            return "X must be an integer from -4 to 4";
+            return "X должен быть целым числом от -4 до 4";
         }
         if (!inRange(y, DECIMAL, "-3", "5")){
-            return "Y must be a number form -3 to 5";
+            return "Y должен быть числом от -3 до 5";
         }
         if (!inRange(r, DECIMAL, "1", "4")){
-            return "R must be a number from 1 to 4";
+            return "R должно быть числом от 1 до 4";
         }
         return null;
     }
